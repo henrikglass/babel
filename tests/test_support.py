@@ -312,6 +312,9 @@ def test_format_decimal():
     fmt = support.Format('en_US')
     assert fmt.decimal(1.2345) == '1.234'
 
+def test_format_currency():
+    fmt = support.Format('en_US')
+    assert fmt.currency(1099.98, 'USD') == '$1,099.98'
 
 def test_format_percent():
     fmt = support.Format('en_US')
