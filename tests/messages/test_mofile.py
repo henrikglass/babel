@@ -36,6 +36,12 @@ class ReadMoTestCase(unittest.TestCase):
             self.assertEqual(['Fuhstange', 'Fuhstangen'],
                              catalog['foobar'].string)
 
+    def test_wrong_file(self):
+        """ If we read an incorrect file (e.g. a po file), it should raise an error """
+        mo_path = os.path.join(self.datadir, 'project', 'i18n', 'de',
+                               'LC_MESSAGES', 'messages.po')
+        with open(mo_path, 'rb') as mo_file:
+            self.assertRaises(IOError, lambda : mofile.read_mo(mo_file))
 
 class WriteMoTestCase(unittest.TestCase):
 
