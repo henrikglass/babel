@@ -30,6 +30,46 @@ def read_mo(fileobj):
            ``GNUTranslations._parse`` method of the ``gettext`` module in the
            standard library.
     """
+    
+    def read_header(buf, filename):
+        """ Parse the .mo file header, which consists of 5 little endian 32
+        bit words. 
+        Returns : ii, (version, msgcount, origidx, transidx) """
+        magic = unpack('<I', buf[:4])[0]  # Are we big endian or little endian?
+        if magic == LE_MAGIC:
+            return ('<II', unpack('<4I', buf[4:20]))
+        elif magic == BE_MAGIC:
+            return ('>II', unpack('>4I', buf[4:20]))
+        raise IOError(0, 'Bad magic number', filename)
+    
+    def read_catalog(headers, tmsg):
+        """ Reads the catalog description and stores it in the variable headers """
+        lastkey = key = None
+        for item in tmsg.splitlines():
+            item = item.strip()
+            if not item:
+                continue
+            if b':' in item:
+                key, value = item.split(b':', 1)
+                lastkey = key = key.strip().lower()
+                headers[key] = value.strip()
+            elif lastkey:
+                headers[lastkey] += b'\n' + item
+    
+    def read_messages(catalog, msg, tmsg):
+        """ Reads the catalog messages and stores them. """
+        if b'\x00' in msg:  # plural forms
+            msg = msg.split(b'\x00')
+            tmsg = tmsg.split(b'\x00')
+            if catalog.charset:
+                msg = [x.decode(catalog.charset) for x in msg]
+                tmsg = [x.decode(catalog.charset) for x in tmsg]
+        else:
+            if catalog.charset:
+                msg = msg.decode(catalog.charset)
+                tmsg = tmsg.decode(catalog.charset)
+        catalog[msg] = Message(msg, tmsg, context=ctxt)
+    
     catalog = Catalog()
     headers = {}
 
@@ -39,17 +79,7 @@ def read_mo(fileobj):
     buflen = len(buf)
     unpack = struct.unpack
 
-    # Parse the .mo file header, which consists of 5 little endian 32
-    # bit words.
-    magic = unpack('<I', buf[:4])[0]  # Are we big endian or little endian?
-    if magic == LE_MAGIC:
-        version, msgcount, origidx, transidx = unpack('<4I', buf[4:20])
-        ii = '<II'
-    elif magic == BE_MAGIC:
-        version, msgcount, origidx, transidx = unpack('>4I', buf[4:20])
-        ii = '>II'
-    else:
-        raise IOError(0, 'Bad magic number', filename)
+    (ii, (version, msgcount, origidx, transidx)) = read_header(buf, filename)
 
     # Now put all messages from the .mo file buffer into the catalog
     # dictionary
@@ -66,35 +96,14 @@ def read_mo(fileobj):
 
         # See if we're looking at GNU .mo conventions for metadata
         if mlen == 0:
-            # Catalog description
-            lastkey = key = None
-            for item in tmsg.splitlines():
-                item = item.strip()
-                if not item:
-                    continue
-                if b':' in item:
-                    key, value = item.split(b':', 1)
-                    lastkey = key = key.strip().lower()
-                    headers[key] = value.strip()
-                elif lastkey:
-                    headers[lastkey] += b'\n' + item
+            read_catalog(headers, tmsg)
 
         if b'\x04' in msg:  # context
             ctxt, msg = msg.split(b'\x04')
         else:
             ctxt = None
 
-        if b'\x00' in msg:  # plural forms
-            msg = msg.split(b'\x00')
-            tmsg = tmsg.split(b'\x00')
-            if catalog.charset:
-                msg = [x.decode(catalog.charset) for x in msg]
-                tmsg = [x.decode(catalog.charset) for x in tmsg]
-        else:
-            if catalog.charset:
-                msg = msg.decode(catalog.charset)
-                tmsg = tmsg.decode(catalog.charset)
-        catalog[msg] = Message(msg, tmsg, context=ctxt)
+        read_messages(catalog, msg, tmsg)
 
         # advance to next entry in the seek tables
         origidx += 8
