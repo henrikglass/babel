@@ -317,6 +317,9 @@ def test_format_percent():
     fmt = support.Format('en_US')
     assert fmt.percent(0.34) == '34%'
 
+def test_format_scientific():
+    fmt = support.Format('en_US')
+    assert fmt.scientific(0.0899284722486562) == '8.99284722486562E-2'
 
 def test_lazy_proxy():
     def greeting(name='world'):
