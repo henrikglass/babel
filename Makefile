@@ -7,6 +7,16 @@ test-cov: import-cldr
 test-cov-branch: import-cldr
 	@PYTHONWARNINGS=default python ${PYTHON_TEST_FLAGS} -m pytest --cov=babel --cov-branch
 
+test-cov2: import-cldr
+	@PYTHONWARNINGS=default python3 ${PYTHON_TEST_FLAGS} -m pytest --cov=babel --cov-report term-missing
+
+test3: import-cldr
+	@PYTHONWARNINGS=default python3 ${PYTHON_TEST_FLAGS} -m pytest
+
+test-cov3: import-cldr
+	@PYTHONWARNINGS=default python3 ${PYTHON_TEST_FLAGS} -m pytest --cov=babel --cov-report term-missing -v
+
+
 test-env:
 	@virtualenv test-env
 	@test-env/bin/pip install pytest
