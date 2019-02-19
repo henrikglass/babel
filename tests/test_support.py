@@ -317,6 +317,9 @@ def test_format_percent():
     fmt = support.Format('en_US')
     assert fmt.percent(0.34) == '34%'
 
+'''
+    This test increases coverage of support.py for 1% it covers line 130 and it checks that scientific notation is correct
+'''
 def test_format_scientific():
     fmt = support.Format('en_US')
     assert fmt.scientific(0.0899284722486562) == '8.99284722486562E-2'
