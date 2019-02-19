@@ -14,7 +14,7 @@
 import unittest
 import pytest
 
-from datetime import date
+from datetime import date, datetime
 
 from babel import localedata, numbers
 from babel.numbers import (
@@ -288,6 +288,14 @@ def test_get_territory_currencies():
 
     assert numbers.get_territory_currencies('QO', date(2013, 1, 1)) == []
 
+def test_get_territory_currencies_2():
+    """ Tests that the function get_territory_currencies also accepts instances of datetime as parameter start_date"""
+    assert numbers.get_territory_currencies('AT', datetime(1995, 1, 1)) == ['ATS']
+    assert numbers.get_territory_currencies('AT', datetime(2011, 1, 1)) == ['EUR']
+    
+def test_get_territory_currencies_3():
+    """ Tests that the function get_territory_currencies also accepts instances of datetime as parameter end_date. """
+    assert numbers.get_territory_currencies('AT', datetime(1995, 1, 1), datetime(2011, 1, 1)) == ['ATS', 'EUR']
 
 def test_get_decimal_symbol():
     assert numbers.get_decimal_symbol('en_US') == u'.'
