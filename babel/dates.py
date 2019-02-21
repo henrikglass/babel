@@ -1427,6 +1427,16 @@ class DateTimeFormat(object):
         return self.format(msecs, num)
 
     def format_timezone(self, char, num):
+        """ Returns information about a specific timezone. 
+        
+        The format of the ouptput depends on the combination of the 
+        input char and num. Only charachters z,Z,O,v,V,x,X are valid.
+        The syntax for custom datetime format patterns is described 
+        in detail in https://unicode.org/reports/tr35/#Date_Format_Patterns
+
+        :param char: pattern format character (z,Z,O,v,V,x,X )
+        :param num: count of format character
+        """
         width = {3: 'short', 4: 'long', 5: 'iso8601'}[max(3, num)]
         if char == 'z':
             return get_timezone_name(self.value, width, locale=self.locale)
