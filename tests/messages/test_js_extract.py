@@ -153,6 +153,7 @@ def test_template_string_tag_usage():
     assert messages == [(1, 'Tag template, wow', [], None)]
 
 def test_funcname_concatenate_token():
+    # Tests the case where we have an operator that is '+' which means we are supposed to concatenate the string
     buf = BytesIO(b"""msg1 = gettext(`Very concatenate,`
     + ` such concatenate`)""")
     messages= list(
