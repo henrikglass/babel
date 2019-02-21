@@ -1426,22 +1426,31 @@ class DateTimeFormat(object):
             self.value.minute * 60000 + self.value.hour * 3600000
         return self.format(msecs, num)
 
+    
+
     def format_timezone(self, char, num):
+        """ Returns information about a specific timezone. 
+        
+        The format of the ouptput depends on the combination of the 
+        input char and num. Only charachters z,Z,O,v,V,x,X are valid.
+        The syntax for custom datetime format patterns is described 
+        in detail in https://unicode.org/reports/tr35/#Date_Format_Patterns
+
+        :param char: pattern format character (z,Z,O,v,V,x,X )
+        :param num: count of format character
+        """
+
         width = {3: 'short', 4: 'long', 5: 'iso8601'}[max(3, num)]
-        if char == 'z':
-            return get_timezone_name(self.value, width, locale=self.locale)
-        elif char == 'Z':
+
+        def format_char_Z(): 
+            """ Formatting rules for case in which char = 'Z' """
             if num == 5:
                 return get_timezone_gmt(self.value, width, locale=self.locale, return_z=True)
-            return get_timezone_gmt(self.value, width, locale=self.locale)
-        elif char == 'O':
-            if num == 4:
+            else:
                 return get_timezone_gmt(self.value, width, locale=self.locale)
-        # TODO: To add support for O:1
-        elif char == 'v':
-            return get_timezone_name(self.value.tzinfo, width,
-                                     locale=self.locale)
-        elif char == 'V':
+        
+        def format_char_V():
+            """ Formatting rules for case in which char = 'V' """
             if num == 1:
                 return get_timezone_name(self.value.tzinfo, width,
                                          uncommon=True, locale=self.locale)
@@ -1450,8 +1459,9 @@ class DateTimeFormat(object):
             elif num == 3:
                 return get_timezone_location(self.value.tzinfo, locale=self.locale, return_city=True)
             return get_timezone_location(self.value.tzinfo, locale=self.locale)
-        # Included additional elif condition to add support for 'Xx' in timezone format
-        elif char == 'X':
+        
+        def format_char_X():
+            """ Formatting rules for case in which char = 'X' """
             if num == 1:
                 return get_timezone_gmt(self.value, width='iso8601_short', locale=self.locale,
                                         return_z=True)
@@ -1461,13 +1471,38 @@ class DateTimeFormat(object):
             elif num in (3, 5):
                 return get_timezone_gmt(self.value, width='iso8601', locale=self.locale,
                                         return_z=True)
-        elif char == 'x':
+        def format_char_x():
+            """ Formatting rules for case in which char = 'x' """
             if num == 1:
                 return get_timezone_gmt(self.value, width='iso8601_short', locale=self.locale)
             elif num in (2, 4):
                 return get_timezone_gmt(self.value, width='short', locale=self.locale)
             elif num in (3, 5):
                 return get_timezone_gmt(self.value, width='iso8601', locale=self.locale)
+
+        if char == 'z':
+            return get_timezone_name(self.value, width, locale=self.locale)
+
+        elif char == 'Z':
+            return format_char_Z()
+
+        elif char == 'O':
+            if num == 4:
+                return get_timezone_gmt(self.value, width, locale=self.locale)
+        # TODO: To add support for O:1
+        elif char == 'v':
+            return get_timezone_name(self.value.tzinfo, width,
+                                     locale=self.locale)
+        elif char == 'V':
+            return format_char_V()
+
+        # Included additional elif condition to add support for 'Xx' in timezone format
+        elif char == 'X':
+            return format_char_X()
+
+        elif char == 'x':
+            return format_char_x()
+
 
     def format(self, value, length):
         return '%0*d' % (length, value)
