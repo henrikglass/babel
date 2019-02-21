@@ -308,6 +308,7 @@ class CatalogTestCase(unittest.TestCase):
         self.assertEqual(formatted_dt, mime_headers['PO-Revision-Date'])
 
     def test_update_header_comment(self):
+        # Tests the case when the template also updates the header comment of the catalog
         cat = catalog.Catalog()
         cat.add('fo', 'Voh')
         tmpl = catalog.Catalog()
